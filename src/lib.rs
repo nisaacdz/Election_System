@@ -3,18 +3,19 @@ use std::{any::Any, collections::HashSet};
 use blockchain::{
     blockchain::{Record, SignedRecord},
     errs::CustomErrs,
+    gen,
     utils::Entity,
 };
 use serde::{Deserialize, Serialize};
 
 pub mod vms;
 
-trait Detail<T> {
+pub trait Detail<T> {
     fn get_title(&self) -> String;
     fn get_body(&self) -> T;
 }
 
-#[derive(PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
 pub struct Id {
     id: String,
 }
@@ -26,12 +27,24 @@ impl Id {
 }
 
 pub struct Election {
-    id: Id,
-    candidates: Vec<Id>,
-    allowed_voters: HashSet<Id>,
+    pub id: Id,
+    pub candidates: Vec<Id>,
+    pub allowed_voters: HashSet<Id>,
 }
 
 impl Election {
+    pub fn random(voter: &Voter) -> Self {
+        let mut obj = Self {
+            id: Id::random(),
+            candidates: vec![Id::random()],
+            allowed_voters: HashSet::new(),
+        };
+
+        obj.add_voter(voter);
+
+        obj
+    }
+
     pub fn add_voter(&mut self, voter: &Voter) -> bool {
         self.allowed_voters.insert(voter.id.clone());
         true
@@ -45,48 +58,73 @@ impl Election {
 
 pub struct Voter {
     id: Id,
-    public_key: Vec<u8>,
-    pending_votes: Vec<Id>,
+    pub public_key: Vec<u8>,
+    pub pending_votes: Vec<Id>,
 
-    unique_details: Vec<Box<dyn Detail<dyn Any>>>,
+    pub unique_details: Vec<Box<dyn Detail<dyn Any>>>,
 
-    details: Vec<Box<dyn Detail<dyn Any>>>,
+    pub details: Vec<Box<dyn Detail<dyn Any>>>,
 }
 
 impl Voter {
-    pub fn vote(&self) -> Vote {
-        
+    fn new(public_key: Vec<u8>) -> Self {
+        Self {
+            id: Id::random(),
+            public_key,
+            pending_votes: vec![],
+            unique_details: vec![],
+            details: vec![],
+        }
+    }
+    pub fn cast_vote(&self, election_id: Id, candidate_id: Id) -> Vote {
+        Vote { voter: self.id.clone(), election_id, voted_for: candidate_id }
+    }
+
+    pub fn cast_signed_vote(&self, election_id: Id, candidate_id: Id, pkey: &[u8]) -> Result<SignedRecord<Vote>, CustomErrs> {
+        let vote = self.cast_vote(election_id, candidate_id);
+        self.sign_record(vote, pkey)
+    }
+
+    pub fn generate() -> (Self, Vec<u8>) {
+        let (private_key, public_key) = gen::generate_key_pair();
+        let obj = Voter::new(public_key);
+
+        (obj, private_key)
     }
 }
 
 impl Entity<Vote> for Voter {
-    fn create() -> Self {
-        todo!()
-    }
-
     fn public_key(&self) -> &[u8] {
         &self.public_key
     }
+}
 
-    fn write_record(&self) -> Vote {
-        Vote { voter: self.id.clone(), voted_for: Id::random() }
+///Candidate represents choices the Voter will vote for
+///
+pub struct Candidate {
+    pub id: Id,
+    pub details: Vec<Box<dyn Detail<dyn Any>>>,
+}
+
+impl Candidate {
+    pub fn random() -> Self {
+        Self {
+            id: Id::random(),
+            details: vec![],
+        }
     }
 }
-///Candidate represents choices the Voter will vote for
-/// 
-pub struct Candidate {
-    id: Id,
-    details: Vec<Box<dyn Detail<dyn Any>>>,
-}
+
 ///
 ///
 ///
 ///
 ///
 
-#[derive(Clone, Serialize, Deserialize)]
-struct Vote {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Vote {
     voter: Id,
+    election_id: Id,
     voted_for: Id,
 }
 
