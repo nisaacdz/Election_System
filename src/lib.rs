@@ -56,6 +56,7 @@ impl Election {
     }
 }
 
+
 pub struct Voter {
     id: Id,
     pub public_key: Vec<u8>,
@@ -114,12 +115,6 @@ impl Candidate {
         }
     }
 }
-
-///
-///
-///
-///
-///
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Vote {
