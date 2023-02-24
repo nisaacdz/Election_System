@@ -1,10 +1,10 @@
 use std::{any::Any, collections::HashSet};
 
 use blockchain::{
-    blockchain::{Record, SignedRecord},
+    blockchain::{Record, SignedRecord, FeedBack},
     errs::CustomErrs,
     gen,
-    utils::Entity,
+    utils::Entity, node::NodeId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -97,6 +97,10 @@ impl Voter {
 impl Entity<Vote> for Voter {
     fn public_key(&self) -> &[u8] {
         &self.public_key
+    }
+
+    fn receive_broadcast(&self, block: &FeedBack<Vote>, from_node: NodeId) {
+        unimplemented!()
     }
 }
 
