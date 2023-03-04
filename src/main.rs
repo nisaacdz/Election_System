@@ -1,12 +1,53 @@
-use electionapp::{Id, Voter, Election};
+use std::any::Any;
 
-fn main() {
-    let (voter, private_key) = Voter::generate();
-    let election = Election::random(&voter);
+use electionapp::{Detail, Voter};
 
+pub struct NameDetail {
+    name: String,
+}
 
-    match voter.cast_signed_vote(election.id, Id::random(), &private_key) {
-        Ok(vote) => println!("Success ! {:?}", vote),
-        Err(err) => println!("Failure ! {:?}", err),
+impl Detail for NameDetail {
+    fn title(&self) -> &str {
+        "Name"
+    }
+
+    fn body(&self) -> &dyn Any {
+        &self.name
     }
 }
+
+pub struct AgeDetail {
+    age: u8,
+}
+
+impl Detail for AgeDetail {
+    fn title(&self) -> &str {
+        "Age"
+    }
+
+    fn body(&self) -> &dyn Any {
+        &self.age
+    }
+}
+
+fn main() {
+    let name_detail = NameDetail {
+        name: "Alice".to_string(),
+    };
+
+    let age_detail = AgeDetail { age: 30 };
+
+    let voter = Voter {
+        details: vec![Box::new(name_detail), Box::new(age_detail)],
+        public_key: vec![1, 2, 3, 4],
+    };
+
+    if let Some(name) = voter.get_detail::<String>("Name") {
+        println!("Name: {}", name);
+    }
+
+    if let Some(age) = voter.get_detail::<u8>("Age") {
+        println!("Age: {}", age);
+    }
+}
+
