@@ -1,2 +1,2 @@
 # Election_System
-A BlockChain backed secure voting system based on my `blockify` library
+A blockchain secured voting system based on my `blockify` library
