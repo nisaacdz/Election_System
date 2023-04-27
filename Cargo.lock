@@ -47,7 +47,8 @@ dependencies = [
 [[package]]
 name = "blockify"
 version = "0.0.3"
-source = "git+https://github.com/nisaacdz/blockify.git?branch=master#7b8bae0e359f9f756e390642dc30f7c5642d1cd0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b66a2d40701fb665ca56087651e999fa7eeb6eb53a1500ceef55683163d00d5e"
 dependencies = [
  "bincode",
  "chrono",
@@ -241,6 +242,7 @@ dependencies = [
 name = "elections"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "blockify",
  "serde",
 ]
